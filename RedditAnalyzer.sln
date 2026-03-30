@@ -1,0 +1,33 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37111.16 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "redditanalyzer.client", "redditanalyzer.client\redditanalyzer.client.esproj", "{F8361769-E97C-A494-5194-8D167C3573CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedditAnalyzer.Server", "RedditAnalyzer.Server\RedditAnalyzer.Server.csproj", "{57722027-56F4-4025-B681-4727C83C2CC5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8361769-E97C-A494-5194-8D167C3573CE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{57722027-56F4-4025-B681-4727C83C2CC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57722027-56F4-4025-B681-4727C83C2CC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57722027-56F4-4025-B681-4727C83C2CC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57722027-56F4-4025-B681-4727C83C2CC5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CBC24D29-4814-447A-8206-7BE0268F9198}
+	EndGlobalSection
+EndGlobal
