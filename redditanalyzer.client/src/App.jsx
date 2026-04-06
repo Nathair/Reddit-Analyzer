@@ -95,6 +95,7 @@ function App() {
         { subreddit: 'r/aww', keywords: ['cat', 'dog'] }
     ]);
     const [limit, setLimit] = useState(25);
+    const [mode, setMode] = useState(1);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
@@ -129,7 +130,7 @@ function App() {
             const response = await fetch(`/api/reddit?verbose=true`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items, limit })
+                body: JSON.stringify({ items, limit, mode })
             });
 
             if (!response.ok) throw new Error('Failed to analyze');
@@ -148,7 +149,7 @@ function App() {
             const response = await fetch(`/api/reddit/download?verbose=true`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items, limit })
+                body: JSON.stringify({ items, limit, mode })
             });
 
             if (!response.ok) throw new Error('Download failed');
@@ -186,6 +187,13 @@ function App() {
                 <div className="controls">
                     <button type="button" className="btn btn-outline" onClick={addSubreddit}>+ Add Subreddit</button>
                     <div style={{ flex: 1 }}></div>
+                    <div className="mode-toggle">
+                        <label>Mode:</label>
+                        <select value={mode} onChange={(e) => setMode(parseInt(e.target.value))}>
+                            <option value={0}>API</option>
+                            <option value={1}>HTML Parsing</option>
+                        </select>
+                    </div>
                     <label style={{ marginRight: '1rem', color: '#818384' }}>Limit N:</label>
                     <input 
                         type="number" 

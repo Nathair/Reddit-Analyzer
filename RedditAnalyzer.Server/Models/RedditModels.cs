@@ -8,10 +8,17 @@ namespace RedditAnalyzer.Server.Models
         public string[] Keywords { get; set; } = Array.Empty<string>();
     }
 
+    public enum FetchMode
+    {
+        Api,
+        HtmlParsing
+    }
+
     public class RedditSearchRequest
     {
         public List<SubredditItem> Items { get; set; } = new();
         public int Limit { get; set; } = 25;
+        public FetchMode Mode { get; set; } = FetchMode.HtmlParsing;
     }
 
     public class RedditPost
