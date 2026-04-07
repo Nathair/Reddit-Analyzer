@@ -6,7 +6,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - logs:/app
+      - ./logs:/app/logs
+#      - ./Chrome:/app/Chrome
+#      - ./ChromeHeadlessShell:/app/ChromeHeadlessShell
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
 

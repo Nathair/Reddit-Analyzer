@@ -192,6 +192,7 @@ function App() {
                         <select value={mode} onChange={(e) => setMode(parseInt(e.target.value))}>
                             <option value={0}>API</option>
                             <option value={1}>HTML Parsing</option>
+                            <option value={2}>Chromium</option>
                         </select>
                     </div>
                     <label style={{ marginRight: '1rem', color: '#818384' }}>Limit N:</label>

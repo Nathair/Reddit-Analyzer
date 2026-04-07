@@ -52,10 +52,12 @@ namespace RedditAnalyzer.Server.Services
             var postsList = new List<RedditPostDto>();
             var patterns = _postMatcher.CreatePatterns(item.Keywords).ToList();
 
-            List<RedditPost> sourcePosts = new();
-            sourcePosts = mode == FetchMode.HtmlParsing ?
-                await _redditClient.GetSubredditHtmlPostsAsync(item.Subreddit, limit) :
-                await _redditClient.GetSubredditApiPostsAsync(item.Subreddit, limit);
+            List<RedditPost> sourcePosts = mode switch
+            {
+                FetchMode.Api => await _redditClient.GetSubredditApiPostsAsync(item.Subreddit, limit),
+                FetchMode.HtmlParsing => await _redditClient.GetSubredditHtmlPostsAsync(item.Subreddit, limit),
+                FetchMode.Chromium => await _redditClient.GetSubredditChromiumPostsAsync(item.Subreddit, limit)
+            };
 
             foreach (var postModel in sourcePosts)
             {

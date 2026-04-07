@@ -11,7 +11,8 @@ namespace RedditAnalyzer.Server.Models
     public enum FetchMode
     {
         Api,
-        HtmlParsing
+        HtmlParsing,
+        Chromium
     }
 
     public class RedditSearchRequest

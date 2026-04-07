@@ -7,7 +7,7 @@ namespace RedditAnalyzer.Server
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +25,7 @@ namespace RedditAnalyzer.Server
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
             });
 
+            builder.Services.AddSingleton<IChromiumBrowserManager, ChromiumBrowserManager>();
             builder.Services.AddScoped<IRedditClient, RedditClient>();
             builder.Services.AddScoped<IPostMatcher, PostMatcher>();
             builder.Services.AddScoped<IRedditService, RedditService>();
@@ -32,6 +33,8 @@ namespace RedditAnalyzer.Server
             builder.Services.AddAutoMapper(typeof(Program));
 
             var app = builder.Build();
+
+            await app.WarmupChromiumAsync();
 
             app.UseMiddleware<ExceptionMiddleware>();
 
@@ -46,7 +49,7 @@ namespace RedditAnalyzer.Server
             try
             {
                 Log.Information("Starting web host");
-                app.Run();
+                await app.RunAsync();
             }
             catch (Exception ex)
             {
