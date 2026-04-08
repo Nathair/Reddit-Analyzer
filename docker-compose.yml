@@ -6,11 +6,44 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./logs:/app/logs
-#      - ./Chrome:/app/Chrome
-#      - ./ChromeHeadlessShell:/app/ChromeHeadlessShell
+      - ./docker_data/reddit_analyzer/logs:/app/logs
+#      - ./docker_data/reddit_analyzer/Chrome:/app/Chrome
+#      - ./docker_data/reddit_analyzer/ChromeHeadlessShell:/app/ChromeHeadlessShell
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
 
-volumes:
-  logs:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: phone_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker_data/phone_db/postgres:/var/lib/postgresql
+
+  phone-db-api:
+    build:
+      context: ./PhoneDbApi
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=db;Database=phone_db;Username=postgres;Password=admin
+    depends_on:
+      - db
+
+  file-monitoring-api:
+    build:
+      context: ./FileMonitoringApi
+      dockerfile: Dockerfile
+    ports:
+      - "5002:8080"
+    volumes:
+      - ./docker_data/file_monitoring/data:/app/data
+      - ./docker_data/file_monitoring/out:/app/out
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - FileMonitoring__FilePath=/app/data/data.csv
