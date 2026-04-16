@@ -4,92 +4,100 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using SiteParser.Service.Models;
+using PhoneNumbers;
 
 namespace SiteParser.Service.Services
 {
     public class AmountWorkScraper : ISiteScraper
     {
         public string SiteName => "Amountwork";
-        private readonly string _url = "https://amountwork.com/ua/rabota/ssha/voditel";
 
-        public async Task<List<JobOffer>> ScrapeAsync()
+        public async Task<List<string>> CollectLinksAsync(string sourceUrl)
         {
-            var offers = new List<JobOffer>();
+            var urls = new List<string>();
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
             var page = await browser.NewPageAsync();
 
-            Console.WriteLine($"[Amountwork] Navigating to {_url}...");
-            await page.GotoAsync(_url);
-
-            // Get job links
-            var jobLinks = await page.QuerySelectorAllAsync("h3 a");
-            var urls = new List<string>();
-            foreach (var link in jobLinks)
+            int i = 1;
+            while (true)
             {
-                var href = await link.GetAttributeAsync("href");
-                if (!string.IsNullOrEmpty(href))
-                {
-                    urls.Add(href.StartsWith("http") ? href : $"https://amountwork.com{href}");
-                }
-            }
+                var pageUrl = i == 1 ? sourceUrl : $"{sourceUrl}?page={i}";
+                Console.WriteLine($"[{SiteName}] Collecting links from {pageUrl}...");
 
-            Console.WriteLine($"[Amountwork] Found {urls.Count} jobs. Scraping details...");
-
-            foreach (var url in urls.Take(10)) // Limit for testing or first page
-            {
                 try
                 {
-                    var offer = await ScrapeJobDetailsAsync(page, url);
-                    if (offer != null)
+                    await page.GotoAsync(pageUrl);
+                    var jobLinks = await page.QuerySelectorAllAsync("h3 a");
+                    if (jobLinks.Count == 0)
                     {
-                        offers.Add(offer);
+                        Console.WriteLine($"[{SiteName}] No more jobs found on page {i}. Stopping.");
+                        break;
                     }
+
+                    int countBefore = urls.Count;
+                    foreach (var link in jobLinks)
+                    {
+                        var href = await link.GetAttributeAsync("href");
+                        if (!string.IsNullOrEmpty(href))
+                        {
+                            urls.Add(href.StartsWith("http") ? href : $"https://amountwork.com{href}");
+                        }
+                    }
+
+                    if (urls.Count == countBefore) break;
+
+                    i++;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Amountwork] Error scraping {url}: {ex.Message}");
+                    Console.WriteLine($"[{SiteName}] Error on page {i}: {ex.Message}");
+                    break;
                 }
             }
 
-            return offers;
+            return urls.Distinct().ToList();
         }
 
-        private async Task<JobOffer> ScrapeJobDetailsAsync(IPage page, string url)
+        public async Task<JobOffer> ScrapeDetailsAsync(IPage page, JobOffer offer)
         {
-            await page.GotoAsync(url);
+            await page.GotoAsync(offer.JobUrl);
 
-            var title = await page.InnerTextAsync("h1") ?? "No Title";
-            var text = await page.InnerTextAsync(".vacancy-description") ?? await page.InnerTextAsync("body");
+            var title = await page.InnerTextAsync("h1").ContinueWith(t => t.IsFaulted ? "No Title" : t.Result) ?? "No Title";
+            var text = await page.InnerTextAsync(".vacancy-description").ContinueWith(t => t.IsFaulted ? "" : t.Result);
 
-            // Try to find location
-            var location = await page.InnerTextAsync(".vacancy-container") ?? "Not specified";
+            var location = await page.InnerTextAsync(".company-info-country").ContinueWith(t => t.IsFaulted ? "Not specified" : t.Result.Split(":").Last())
+                         ?? "Not specified";
 
-            // Extract phones from text
-            var phones = PhoneExtractor.Extract(text);
+            var phone = ("+" + await page.Locator(".company-info-contact").Last.InnerTextAsync().ContinueWith(t => t.IsFaulted ? "" : t.Result.Split(":").Last())).Replace("++", "+");
 
-            // Check if there is a "Show phone" button
-            var showPhoneBtn = await page.QuerySelectorAsync(".show-phone");
-            if (showPhoneBtn != null)
+            var util = PhoneNumberUtil.GetInstance();
+            var region = util.GetRegionCodeForNumber(util.Parse(phone, null));
+
+            var phones = new List<string>() { phone };
+
+            var matches = util.FindNumbers(text, region);
+
+            foreach (var match in matches)
             {
-                await showPhoneBtn.ClickAsync();
-                await Task.Delay(500); // Wait for reveal
-                var revealedPhones = await page.InnerTextAsync(".phone-block");
-                if (!string.IsNullOrEmpty(revealedPhones))
+                var number = match.Number;
+
+                if (util.IsValidNumber(number))
                 {
-                    phones.AddRange(PhoneExtractor.Extract(revealedPhones));
+                    var formatted = util.Format(number, PhoneNumberFormat.E164);
+                    phones.Add(formatted);
                 }
             }
 
-            return new JobOffer
-            {
-                Title = title.Trim(),
-                Text = text.Trim(),
-                PhoneNumbers = phones.Distinct().ToList(),
-                Location = location.Trim(),
-                SourceUrl = url,
-                ScrapedAt = DateTime.UtcNow
-            };
+            offer.Title = title.Trim();
+            offer.Text = text.Trim();
+            offer.PhoneNumbers = phones.Distinct().ToList();
+            offer.Location = location.Trim();
+            offer.ScrapedAt = DateTime.UtcNow;
+            offer.IsProcessed = true;
+            offer.Status = OfferStatus.Completed;
+
+            return offer;
         }
     }
 }
