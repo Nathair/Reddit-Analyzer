@@ -72,11 +72,21 @@ namespace SiteParser.Service.Services
             var phone = ("+" + await page.Locator(".company-info-contact").Last.InnerTextAsync().ContinueWith(t => t.IsFaulted ? "" : t.Result.Split(":").Last())).Replace("++", "+");
 
             var util = PhoneNumberUtil.GetInstance();
-            var region = util.GetRegionCodeForNumber(util.Parse(phone, null));
+            string region = null;
 
-            var phones = new List<string>() { phone };
+            var phones = new List<string>();
 
-            var matches = util.FindNumbers(text, region);
+            try
+            {
+                region = util.GetRegionCodeForNumber(util.Parse(phone, null));
+                phones.Add(phone);
+            }
+            catch
+            {
+
+            }
+
+            var matches = util.FindNumbers(text, region ?? "USA");
 
             foreach (var match in matches)
             {
