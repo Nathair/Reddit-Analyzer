@@ -49,5 +49,10 @@ namespace SiteParser.Service.Services
             var filter = Builders<JobOffer>.Filter.Eq(offer => offer.IsProcessed, false);
             return await _collection.Find(filter).Limit(limit).ToListAsync();
         }
+
+        public async Task<List<JobOffer>> GetProcessedOffersAsync(int limit = 100)
+        {
+            return await _collection.Find(offer => offer.IsProcessed && offer.Status != OfferStatus.Excluded).Limit(limit).ToListAsync();
+        }
     }
 }

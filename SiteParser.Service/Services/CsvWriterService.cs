@@ -1,8 +1,9 @@
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using SiteParser.Service.Models;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using CsvHelper;
-using SiteParser.Service.Models;
 
 namespace SiteParser.Service.Services
 {
@@ -11,8 +12,14 @@ namespace SiteParser.Service.Services
         public void WriteLeads(string filePath, List<JobOffer> leads)
         {
             var exists = File.Exists(filePath);
+
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ";" // ← тут задаєш
+            };
+
             using var writer = new StreamWriter(filePath, append: true);
-            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            using var csv = new CsvWriter(writer, config);
 
             if (!exists)
             {
