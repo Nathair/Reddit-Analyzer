@@ -69,7 +69,7 @@ namespace SiteParser.Service.Services
             var location = await page.InnerTextAsync(".company-info-country").ContinueWith(t => t.IsFaulted ? "Not specified" : t.Result.Split(":").Last())
                          ?? "Not specified";
 
-            var phone = ("+" + await page.Locator(".company-info-contact").Last.InnerTextAsync().ContinueWith(t => t.IsFaulted ? "" : t.Result.Split(":").Last())).Replace("++", "+");
+            var phone = ((ISiteScraper)this).CleanPhone(("+" + await page.Locator(".company-info-contact").Last.InnerTextAsync().ContinueWith(t => t.IsFaulted ? "" : t.Result.Split(":").Last())).Replace("++", "+"));
 
             var util = PhoneNumberUtil.GetInstance();
             string region = null;
